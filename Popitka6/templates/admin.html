@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>KorokNet</title>
+</head>
+<body>
+<h1>Админ-Панель</h1>
+<a href="/logout">Выйти</a>
+<table border="1">
+    <tr>
+        <th>ID</th>
+        <th>ФИО</th>
+        <th>Логин</th>
+        <th>Курс</th>
+        <th>Дата</th>
+        <th>Оплата</th>
+        <th>Статус</th>
+    </tr>
+    {%for r in requests%}
+    <tr>
+        <td>{{r.id}}</td>
+        <td>{{r.fio}}</td>
+        <td>{{r.login}}</td>
+        <td>{{r.course_name}}</td>
+        <td>{{r.date_start}}</td>
+        <td>{{r.payment_method}}</td>
+        <td>{{r.status}}</td>
+    </tr>
+    {%endfor%}
+</table>
+</body>
+</html>
