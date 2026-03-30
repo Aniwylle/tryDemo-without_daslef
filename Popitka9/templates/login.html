@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KorokNet</title>
+</head>
+<body>
+    <h1>Авторизация</h1>
+    <p>Нет аккаунта? <a href="/register">Зарегистрироваться</a></p>
+    {%if error%}
+    <p style="color: red;">Ошибка</p>
+    {%endif%}
+    <form action="/login" method="post">
+        Логин: <input type="text" name="login" required>
+        Пароль: <input type="password" name="password" minlength="8" required>
+        <button type="submit">Войти</button> 
+    </form>
+</body>
+</html>
