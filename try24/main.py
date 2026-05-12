@@ -87,16 +87,19 @@ def get_login(request: Request):
 def post_login(request: Request,
                   login: str = Form(...),
                   password: str = Form(...)):
+
     if login == "Admin":
         if password == "KorokNET":
             request.session["admin"] = True
-            return RedirectResponse("/admin", status_code=302)
+            return RedirectResponse(url="/admin", status_code=302)
         else:
             return template.TemplateResponse("login.html", {"request": request, "error": "Неверные данные"})
+
     with get_db() as conn:
-        user = conn.execute("select * from users where login = ?", (login,)).fetchone()
-        request.session["user_id"] = user["id"]
-        return RedirectResponse(url="/profile", status_code=302)
+        user = conn.execute("select * from users where login = ?",(login,)).fetchone()
+        if user and user["password"] == password:
+            request.session["user_id"] = user["id"]
+            return RedirectResponse(url="/profile", status_code=302)
     return template.TemplateResponse("login.html", {"request": request, "error": "Неверные данные"})
 
 @app.get("/profile")
