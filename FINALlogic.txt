@@ -1,0 +1,207 @@
+Памятка если ты котенок и все забыл:
+
+создать папку templates
+в ней 5 файликов 
+admin.html
+create_request.html
+login.html
+register.html
+profile.html
+и один main.py вне этой папки 
+
+Логика main.py:
+импортируем библиотеки
+re as ree
+psycopg2
+psycopg2.extras
+и импортируем еще библиотеки from всяких fastapi
+from fastapi import FastAPI, Query, Form, Request
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
+from starlette.middleware.sessions import SessionMiddleware
+
+Делаем app
+Назначаем ему SessionMiddleware
++ Назначаем ему mount
+
+Создаем переменную templates и сохраняем в нее Jinja2Templates
+
+Функция подключения к БД
+    соединение = psycopg2.connect(
+        название бд, которую ты создал в pgAdmin,
+        юзер,
+        пароль,
+        хост,
+        порт,
+    )
+    соединение.cursor_factory = psycopg2.extras.DictCursor #Настраиваем, чтобы данные возвращались в виде словарей
+    возвращаем соединение
+
+Функция создания нашей БД
+    подключаемся к БД
+        создаем курсор для выполнения sql команд
+        создаем таблицу с users
+        (из изменений id serial primary key)
+        создаем таблицу requests
+        (id serial primary key итд)
+        conn.commit()
+вызываем создание таблицы
+
+МАРШРУТЫ:
+
+get /:
+    редиректим к /login
+ 
+get logout:
+    удаляем куки
+    редиректим к /login
+
+get register:
+    возвращаем шаблон register.html (request=request, name='register.html', context={"error": None})
+
+post register (login, password, fio, phone, email):
+    ошибка = ничего
+    
+    если логин не соответствует (r"[a-zA-Z0-9]{6,}", login):
+        ошибка = "Логин: Латиница и цифры, 6 символов минимум"
+    иначе если пароль < 8:
+        ошибка = "Пароль: 8 символов минимум"
+    иначе если ФИО не соответствует (r"[а-яА-ЯёЁ\s]+", fio):
+        ошибка = "ФИО: Кириллица и пробелы"
+    иначе если телефон не соответствует формату (r"8\(\d{3}\)\d{3}-\d{2}-\d{2}", phone):
+        ошибка = "Телефон: Формата 8(XXX)XXX-XX-XX"
+    иначе если email не соответствует (r"[^@]+@[^@]+\.[^@]+", email):
+        ошибка = "Почта: Неверный формат"
+    иначе:
+        подключаемся к БД
+        создаем курсор
+        кур.execute(селектим всех юзеров где логин = %s) #проверяем нет ли такого логина
+        юзер = кур.fetchone()
+
+        если не юзер:
+            кур.инстертим данные в юзер(БД)
+            соединение.коммитим
+            редиректим на /login
+        иначе:
+            ошибка = "Логин уже занят"
+    возвращаем страницу register.html с ошибкой (если есть) и введёнными данными (request=request, name="register.html", context={ "error": error, "login": login, "fio": fio, "phone": phone, "email": email, })
+    
+get login:
+    возвращаем шаблон login.html (request=request, name='login.html', context={"error": None})  
+
+post login (login,password):
+    Если логин == Админ
+        Если пароль == КорокНЕТ
+            сохраняем в реках что это реально тру Админ
+            редиректим к /admin
+        Если пароль не совпал:
+            возвращаем шаблон login.html - с ошибкой что данные неверные (request=request, name="login.html", context={"error": "Неверные данные"})
+
+    подключаемся к БД
+        создаем курсор
+        кур.execute(селектим всех юзеров где логин = %s) #проверяем нет ли такого логина
+        юзер = кур.fetchone()
+        Если user вообще есть И пароль юзера == password (Который мы получили с фронта)
+            сохраняем в куках id данного пользователя
+            редиректим к /profile
+    возвращаем шаблон login.html - с ошибкой что данные неверные  
+
+get profile
+    Берем id пользователя из куков
+    Если его нет
+        редиректим к /login    
+    
+    подключаемся к БД
+        создаем курсор 
+        кур.execute(селектим все реквесты где юзер = %s)
+        request_list = кур.fetchall()
+    возвращаем шаблон profile.html с данными из request_list (request=request, name="profile.html", context={"requests": request_list})
+
+post add_review (review, request_id):
+    Берем id пользователя из куков
+    Если его нет
+        редиректим к /login    
+
+    подключаемся к БД
+        создаем курсор 
+        кур.execute(обновить заявки выставляя отзыв = ? где id = ?, (review, request_id))
+        соединение.коммитим
+    редиректим /profile   
+
+2 переменных - ВСЕ КУРСЫ  и ВСЕ СПОСОБЫ ОПЛАТЫ ["", "", ""]
+
+get create_request
+    Берем id пользователя из куков
+    Если его нет
+        редиректим к /login    
+    возвращаем шаблон create_request.html +  ВСЕ КУРСЫ иВСЕ СПОСОБЫ ОПЛАТЫ (request=request, name="create_request.html", context={"courses": COURSES, "payments": PAYMENTS})
+
+post create_request (course,date,payment)
+    Берем id пользователя из куков
+    Если его нет
+        редиректим к /login    
+
+    подключаемся к БД
+        создаем курсор
+        кур.execute(инсертим в реквесты курс, дату, оплату + user_id)
+        соединение.коммитим
+    редиректим к /profile
+
+get admin(status str | None = Query(None))
+    Смотрим из куков пользователь админ
+    Если нет
+        редиректим к /login    
+    
+    база = читаем все заявки, логины юзеров, их фио с заявок, + пользователи где id пользователей = заявкам к котором привязан пользователь
+    params= []
+    если статус и статус не равный Все
+        база += " and status = %s"
+        params.append(status)
+    
+    подключаемся к БД
+        создаем курсор
+        кур.execute(base, params)
+        request_list = кур.fetchall()
+    возвращаем шаблон admin.html с данными из request_list (request=request, name="admin.html", context={"requests": request_list, "cur_status": status or "Все"})
+
+post admin/change_status(status, request_id):
+    Смотрим из куков пользователь админ
+    Если нет
+        редиректим к /login    
+
+    подключаемся к БД
+        создаем курсор
+        кур.execute(обновляем заявки выставляя статус = %s где id = %s)
+        соединение.коммитим
+    редиректим /admin
+
+
+
+доп штучка для слайдера:
+в задании корокНЕТ не написано, где его нужно вставить, поэтому без разницы куда его запихнешь
+вот логика скрипта и дива для получения доп балла
+
+подключаем через link:css и в hrev добавляем путь из static:
+    <link rel="stylesheet" href="/static/glide.theme.min.css">
+    <link rel="stylesheet" href="/static/glide.core.min.css">
+
+создаем див с классом glide
+    создаем див с классом glide__track и data-glide-el="track"
+        создаем список всех слайдов с классом glide__slides
+            создаем слайд с картинкой
+            создаем слайд с картинкой
+            создаем слайд с картинкой
+            итд
+    создаем див с классом glide__arrows и data-glide-el="controls"
+        создаем кнопку назад class="glide__arrow glide__arrow--left" data-glide-dir="<"
+        создаем кнопку вперед class="glide__arrow glide__arrow--right" data-glide-dir=">"
+
+подключаем скрипт:
+<script src="/static/glide.min.js"></script>
+new Glide('.glide', {      // Находим элемент с классом glide
+        type: 'carousel',       // Тип: карусель
+        autoplay: 3000,        // каждые 3 секунды само листает(3000 мс)
+        perView: 1             // Показываем 1 слайд за раз
+    }).mount();                // Запускаем слайдер (монтируем)
+инициализируем его
