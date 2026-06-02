@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KorokNet</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/glide.core.min.css">
+    <link rel="stylesheet" href="/static/glide.theme.min.css">
+</head>
+<body>
+    <h1>Авторизация</h1>
+    {%if error%}
+    <p style="color: red;">{{error}}</p>
+    {%endif%}
+    <p>Еще не зарегистрированы? <a href="/register">Зарегистрироваться</a></p>
+    <form action="/login" method="post">
+        <input type="text" name="login" required placeholder="Логин"> <br>
+        <input type="password" name="password" required placeholder="Пароль"> <br>
+        <button type="submit">Войти</button>
+    </form>
+
+    <div class="glide">
+        <div class="glide__track" data-glide-el="track">
+            <ul class="glide__slides">
+                <li class="glide__slides"><img src="/static/images/slider/image06.jpg" width="100%"></li>
+                <li class="glide__slides"><img src="/static/images/slider/image07.jpg" width="100%"></li>
+                <li class="glide__slides"><img src="/static/images/slider/image11.jpg" width="100%"></li>
+                <li class="glide__slides"><img src="/static/images/slider/image08.webp" width="100%"></li>
+                <li class="glide__slides"><img src="/static/images/slider/image09.webp" width="100%"></li>
+                <li class="glide__slides"><img src="/static/images/slider/image10.webp" width="100%"></li>
+                <li class="glide__slides"><img src="/static/images/slider/image12.webp" width="100%"></li>
+                <li class="glide__slides"><img src="/static/images/slider/image13.webp" width="100%"></li>
+            </ul>
+        </div>
+        <div class="glide__arrows" data-glide-el="controls">
+            <button class="glide__arrow glide__arrow--left" data-glide-dir="<"><</button>
+            <button class="glide__arrow glide__arrow--right" data-glide-dir=">">></button>
+        </div>
+    </div>
+
+    <script src="/static/glide.min.js"></script>
+    <script>
+        new Glide('.glide',{
+            type: 'carousel',
+            autoplay: 3000,
+            perView: 1
+        }).mount();
+    </script>
+</body>
+</html>
